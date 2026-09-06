@@ -87,7 +87,9 @@ namespace AssetStudio
             m_Header.signature = reader.ReadStringToNull();
             m_Header.version = reader.ReadUInt32();
             m_Header.unityVersion = reader.ReadStringToNull();
-            m_Header.unityRevision = UnityVersion.TryParse(reader.ReadStringToNull(), out var ver) ? ver : new UnityVersion();
+            var revStr = reader.ReadStringToNull();
+            if (!UnityVersion.TryParse(revStr, out m_Header.unityRevision))
+                m_Header.unityRevision = new UnityVersion();
             
             switch (m_Header.signature)
             {
@@ -430,7 +432,7 @@ namespace AssetStudio
 
             byte[] sharedCompressedBuff = null;
             byte[] sharedUncompressedBuff = null;
-            if (blocksCompression > CompressionType.Lzma && blocksCompression != CompressionType.Lzham)
+            if (blocksCompression != CompressionType.Lzma && blocksCompression != CompressionType.Lzham)
             {
                 sharedCompressedBuff = BigArrayPool<byte>.Shared.Rent(blockSize);
                 sharedUncompressedBuff = BigArrayPool<byte>.Shared.Rent(blockSize);
@@ -438,16 +440,14 @@ namespace AssetStudio
 
             try
             {
-                for (var i = 0; i < m_BlocksInfo.Length; i++)
+                foreach (var blockInfo in m_BlocksInfo)
                 {
-                    var blockInfo = m_BlocksInfo[i];
                     var compressionType = (CompressionType)(blockInfo.flags & StorageBlockFlags.CompressionTypeMask);
 
                     if (customBlockCompression != CompressionType.Auto && compressionType > 0)
                     {
                         compressionType = customBlockCompression;
                     }
-                    var debugMsg = $"[{i:D2}] Compression: {compressionType} | UncompressedSize: {blockInfo.uncompressedSize} | CompressedSize: {blockInfo.compressedSize} ";
 
                     long numWrite;
                     var errorMsg = string.Empty;
@@ -458,6 +458,7 @@ namespace AssetStudio
                             numWrite = blockInfo.compressedSize;
                             break;
                         case CompressionType.Lzma:
+                            Logger.Info("Decompressing LZMA stream...");
                             numWrite = BundleDecompressionHelper.DecompressLzmaStream(reader.BaseStream, blocksStream, blockInfo.compressedSize, blockInfo.uncompressedSize, ref errorMsg);
                             break;
                         case CompressionType.Lz4:
@@ -470,8 +471,7 @@ namespace AssetStudio
                             sharedCompressedBuff.AsSpan().Clear();
                             sharedUncompressedBuff.AsSpan().Clear();
 
-                            var read = reader.Read(sharedCompressedBuff, 0, compressedSize);
-                            debugMsg += $"(read: {read.ToString().ColorIf(read != compressedSize, ColorConsole.BrightRed)})";
+                            _ = reader.Read(sharedCompressedBuff, 0, compressedSize);
                             var compressedSpan = new ReadOnlySpan<byte>(sharedCompressedBuff, 0, compressedSize);
                             var uncompressedSpan = new Span<byte>(sharedUncompressedBuff, 0, uncompressedSize);
 
@@ -479,6 +479,7 @@ namespace AssetStudio
                             if (numWrite == uncompressedSize)
                             {
                                 blocksStream.Write(sharedUncompressedBuff, 0, uncompressedSize);
+                                continue;
                             }
                             break;
                         case CompressionType.Lzham:
@@ -486,7 +487,6 @@ namespace AssetStudio
                         default:
                             throw new IOException($"Unknown block compression type: {compressionType}.\nYou may try to specify the compression type manually.\n");
                     }
-                    Logger.Debug(debugMsg);
 
                     if (numWrite != blockInfo.uncompressedSize)
                     {

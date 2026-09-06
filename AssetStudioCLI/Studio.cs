@@ -30,7 +30,6 @@ namespace AssetStudioCLI
         {
             Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
             Progress.Default = new Progress<int>(ShowCurProgressValue);
-            Progress.SetInstance(1, new Progress<int>(ShowCurProgressValue));
             assetsManager.LoadViaTypeTree = !CLIOptions.f_avoidLoadingViaTypetree.Value;
             assetsManager.Options.CustomUnityVersion = CLIOptions.o_unityVersion.Value;
             assetsManager.Options.BundleOptions.CustomBlockInfoCompression = CLIOptions.o_bundleBlockInfoCompression.Value;
@@ -520,11 +519,11 @@ namespace AssetStudioCLI
                     info += $"\n#\n# Total: {parsedAssetsList.Count} assets";
                 }
 
-                info += $"\n\n[Cubism Live2D]\n# Exportable Models: {l2dModelDict.Count}";
+                info += $"\n\n# Exportable Live2D Models: {l2dModelDict.Count}";
             }
             else
             {
-                info += "\n\nNo exportable assets found.";
+                info += "No exportable assets found.";
             }
 
             if (CLIOptions.o_logLevel.Value > LoggerEvent.Info)
@@ -794,10 +793,13 @@ namespace AssetStudioCLI
             {
                 Logger.Default.Log(LoggerEvent.Info, "Nothing exported.", ignoreLevel: true);
             }
+            else if (toExportCount > exportedCount)
+            {
+                Logger.Default.Log(LoggerEvent.Info, $"Finished exporting {exportedCount} asset(s) to \"{CLIOptions.o_outputFolder.Value.Color(Ansi.BrightYellow)}\".", ignoreLevel: true);
+            }
             else
             {
-                var outPath = CLIOptions.o_outputFolder.Value.ColorIf(toExportCount > exportedCount, Ansi.BrightYellow, Ansi.BrightGreen);
-                Logger.Default.Log(LoggerEvent.Info, $"Finished exporting {exportedCount} asset(s) to \"{outPath}\".", ignoreLevel: true);
+                Logger.Default.Log(LoggerEvent.Info, $"Finished exporting {exportedCount} asset(s) to \"{CLIOptions.o_outputFolder.Value.Color(Ansi.BrightGreen)}\".", ignoreLevel: true);
             }
 
             if (toExportCount > exportedCount)

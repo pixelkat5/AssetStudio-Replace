@@ -811,8 +811,6 @@ namespace AssetStudio
                 m_HasVirtualGeometryMesh = reader.ReadBoolean();
             }
 
-            //m_MeshLodInfo = new MeshLodInfo(reader) //6000.2 and up
-
             if (!assetsFile.assetsManager.MeshLazyLoad)
                 ProcessData();
         }

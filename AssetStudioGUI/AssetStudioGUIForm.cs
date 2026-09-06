@@ -89,10 +89,10 @@ namespace AssetStudioGUI
         private int sortColumn = -1;
         private bool reverseSort;
 
-#if NETFRAMEWORK
-        private AlphanumComparatorFast alphanumComparator = new AlphanumComparatorFast();
-#else
+#if NET6_0_OR_GREATER
         private AlphanumComparatorFastNet alphanumComparator = new AlphanumComparatorFastNet();
+#else
+        private AlphanumComparatorFast alphanumComparator = new AlphanumComparatorFast();
 #endif
 
         //asset list selection
@@ -118,9 +118,6 @@ namespace AssetStudioGUI
         private GUILogger logger;
 
         private TaskbarManager taskbar = TaskbarManager.Instance;
-        private System.Drawing.Font progressBarTextFont;
-        private Brush progressBarTextBrush;
-        private StringFormat progressBarTextFormat;
 
         [DllImport("gdi32.dll")]
         private static extern IntPtr AddFontMemResourceEx(IntPtr pbFont, uint cbFont, IntPtr pdv, [In] ref uint pcFonts);
@@ -160,16 +157,7 @@ namespace AssetStudioGUI
             Logger.Default = logger;
             writeLogToFileToolStripMenuItem.Checked = Properties.Settings.Default.useFileLogger;
 
-            progressBarTextFont = new System.Drawing.Font(FontFamily.GenericSansSerif, 8);
-            progressBarTextBrush = new SolidBrush(SystemColors.ControlText);
-            progressBarTextFormat = new StringFormat
-            {
-                Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Center,
-            };
-
             Progress.Default = new Progress<int>(SetProgressBarValue);
-            Progress.SetInstance(index: 1, new Progress<int>(SetProgressBarStringValue));
             Studio.StatusStripUpdate = StatusStripUpdate;
         }
 
@@ -1542,33 +1530,6 @@ namespace AssetStudioGUI
             }));
         }
 
-        private void SetProgressBarStringValue(int value)
-        {
-            var str = $"Decompressing LZMA: {value}%";
-
-            if (InvokeRequired)
-            {
-                BeginInvoke(new Action(() =>
-                {
-                    using (var graphics = progressBar1.CreateGraphics())
-                    {
-                        progressBar1.Refresh();
-                        var rect = new Rectangle(0, 0, progressBar1.Width, progressBar1.Height);
-                        graphics.DrawString(str, progressBarTextFont, progressBarTextBrush, rect, progressBarTextFormat);
-                    }
-                }));
-            }
-            else
-            {
-                using (var graphics = progressBar1.CreateGraphics())
-                {
-                    progressBar1.Refresh();
-                    var rect = new Rectangle(0, 0, progressBar1.Width, progressBar1.Height);
-                    graphics.DrawString(str, progressBarTextFont, progressBarTextBrush, rect, progressBarTextFormat);
-                }
-            }
-        }
-
         private void StatusStripUpdate(string statusText)
         {
             if (InvokeRequired)
@@ -1660,6 +1621,16 @@ namespace AssetStudioGUI
                 exportL2DWithFadeLstToolStripMenuItem.Visible = false;
                 exportL2DWithFadeToolStripMenuItem.Visible = false;
                 exportL2DWithClipsToolStripMenuItem.Visible = false;
+                replaceTextureToolStripMenuItem.Visible = false;
+
+                if (assetListView.SelectedIndices.Count == 1)
+                {
+                    var onlySelected = GetSelectedAssets().FirstOrDefault();
+                    if (onlySelected != null && TextureReplacer.TryResolveTarget(onlySelected.Asset, out _, out _, out _))
+                    {
+                        replaceTextureToolStripMenuItem.Visible = true;
+                    }
+                }
 
                 if (assetListView.SelectedIndices.Count == 1)
                 {
@@ -1736,6 +1707,45 @@ namespace AssetStudioGUI
             var args = $"/select, \"{selectAsset.SourceFile.originalPath ?? selectAsset.SourceFile.fullName}\"";
             var pfi = new ProcessStartInfo("explorer.exe", args);
             Process.Start(pfi);
+        }
+
+        private void replaceTextureToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var selectAsset = (AssetItem)assetListView.Items[assetListView.SelectedIndices[0]];
+            if (!TextureReplacer.TryResolveTarget(selectAsset.Asset, out var texture, out var region, out var resolveReason))
+            {
+                MessageBox.Show(resolveReason, "Can't replace this asset", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!TextureReplacer.CanReplace(texture, out var reason))
+            {
+                MessageBox.Show(reason, "Can't replace this texture", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Title = region != null
+                    ? $"Replace \"{selectAsset.Text}\" ({region.Value.Width}x{region.Value.Height} region within \"{texture.m_Name}\")"
+                    : $"Replace \"{texture.m_Name}\" ({texture.m_Width}x{texture.m_Height}, {texture.m_TextureFormat})";
+                openFileDialog.Filter = "Image files|*.png;*.bmp;*.jpg;*.jpeg;*.tga;*.gif;*.webp|All files|*.*";
+                if (openFileDialog.ShowDialog(this) != DialogResult.OK)
+                {
+                    return;
+                }
+
+                try
+                {
+                    TextureReplacer.Replace(texture, openFileDialog.FileName, region);
+                    StatusStripUpdate($"Replaced \"{selectAsset.Text}\" from {Path.GetFileName(openFileDialog.FileName)}");
+                    PreviewAsset(lastSelectedItem);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Failed to replace texture", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         private void exportAnimatorWithAnimationClipMenuItem_Click(object sender, EventArgs e)

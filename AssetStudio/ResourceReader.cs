@@ -105,5 +105,45 @@ namespace AssetStudio
                 binaryReader.BaseStream.CopyTo(writer, size);
             }
         }
+
+        /// <summary>
+        /// Returns the on-disk path backing this resource's data, or null if the data doesn't
+        /// live in a real file we can write back to (e.g. it was decompressed into memory from
+        /// a compressed asset bundle). Used to determine whether in-place replacement is possible.
+        /// </summary>
+        public string GetPatchableFilePath()
+        {
+            var binaryReader = GetReader();
+            return (binaryReader.BaseStream as FileStream)?.Name;
+        }
+
+        /// <summary>
+        /// Overwrites this resource's bytes directly in the backing file on disk.
+        /// Only works when <see cref="GetPatchableFilePath"/> returns a real path and
+        /// <paramref name="newData"/> is exactly <see cref="Size"/> bytes long (the data can't
+        /// grow or shrink in place without rewriting the whole container file).
+        /// </summary>
+        public bool TryPatchData(byte[] newData)
+        {
+            if (newData == null || newData.Length != size)
+            {
+                return false;
+            }
+
+            var filePath = GetPatchableFilePath();
+            if (filePath == null)
+            {
+                return false;
+            }
+
+            using (var writeStream = new FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
+            {
+                writeStream.Position = Offset;
+                writeStream.Write(newData, 0, newData.Length);
+                writeStream.Flush();
+            }
+
+            return true;
+        }
     }
 }

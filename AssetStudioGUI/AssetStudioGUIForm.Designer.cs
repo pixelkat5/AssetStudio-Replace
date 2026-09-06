@@ -48,7 +48,7 @@
             this.useDumpTreeViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.buildTreeStructureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.customUnityVersionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.specifyUnityVersionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.specifyUnityVersionTextBox = new System.Windows.Forms.ToolStripTextBox();
             this.bundleDecompressionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.alwaysDecompressToDiskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -174,6 +174,7 @@
             this.exportL2DWithClipsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.goToSceneHierarchyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showOriginalFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.replaceTextureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dumpTreeViewContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.tvCopyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tvToolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -377,7 +378,7 @@
             // importOptionsToolStripMenuItem
             // 
             this.importOptionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.customUnityVersionToolStripMenuItem,
+            this.specifyUnityVersionToolStripMenuItem,
             this.specifyUnityVersionTextBox,
             this.bundleDecompressionToolStripMenuItem,
             this.alwaysDecompressToDiskToolStripMenuItem,
@@ -393,17 +394,17 @@
             this.importOptionsToolStripMenuItem.DropDownClosed += new System.EventHandler(this.importOptions_DropDownClose);
             this.importOptionsToolStripMenuItem.DropDownOpened += new System.EventHandler(this.importOptions_DropDownOpened);
             // 
-            // customUnityVersionToolStripMenuItem
+            // specifyUnityVersionToolStripMenuItem
             // 
-            this.customUnityVersionToolStripMenuItem.Enabled = false;
-            this.customUnityVersionToolStripMenuItem.Name = "customUnityVersionToolStripMenuItem";
-            this.customUnityVersionToolStripMenuItem.ShowShortcutKeys = false;
-            this.customUnityVersionToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
-            this.customUnityVersionToolStripMenuItem.Text = "Custom Unity version";
+            this.specifyUnityVersionToolStripMenuItem.Enabled = false;
+            this.specifyUnityVersionToolStripMenuItem.Name = "specifyUnityVersionToolStripMenuItem";
+            this.specifyUnityVersionToolStripMenuItem.ShowShortcutKeys = false;
+            this.specifyUnityVersionToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.specifyUnityVersionToolStripMenuItem.Text = "Specify Unity version";
+            this.specifyUnityVersionToolStripMenuItem.ToolTipText = "Specify full Unity version, including letters at the end\r\nExample: 2017.4.39f1";
             // 
             // specifyUnityVersionTextBox
             // 
-            this.specifyUnityVersionTextBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.specifyUnityVersionTextBox.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.specifyUnityVersionTextBox.Name = "specifyUnityVersionTextBox";
             this.specifyUnityVersionTextBox.Size = new System.Drawing.Size(100, 23);
@@ -1551,7 +1552,8 @@
             this.exportL2DWithFadeToolStripMenuItem,
             this.exportL2DWithClipsToolStripMenuItem,
             this.goToSceneHierarchyToolStripMenuItem,
-            this.showOriginalFileToolStripMenuItem});
+            this.showOriginalFileToolStripMenuItem,
+            this.replaceTextureToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(332, 224);
             // 
@@ -1631,6 +1633,14 @@
             this.showOriginalFileToolStripMenuItem.Text = "Show original file";
             this.showOriginalFileToolStripMenuItem.Visible = false;
             this.showOriginalFileToolStripMenuItem.Click += new System.EventHandler(this.showOriginalFileToolStripMenuItem_Click);
+            // 
+            // replaceTextureToolStripMenuItem
+            // 
+            this.replaceTextureToolStripMenuItem.Name = "replaceTextureToolStripMenuItem";
+            this.replaceTextureToolStripMenuItem.Size = new System.Drawing.Size(331, 22);
+            this.replaceTextureToolStripMenuItem.Text = "Replace texture...";
+            this.replaceTextureToolStripMenuItem.Visible = false;
+            this.replaceTextureToolStripMenuItem.Click += new System.EventHandler(this.replaceTextureToolStripMenuItem_Click);
             // 
             // dumpTreeViewContextMenuStrip
             // 
@@ -1779,6 +1789,7 @@
         private OpenTK.GLControl glControl1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem showOriginalFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem replaceTextureToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exportAnimatorWithSelectedAnimationClipMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exportSelectedAssetsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem filterTypeToolStripMenuItem;
@@ -1860,7 +1871,7 @@
         private System.Windows.Forms.ToolStripMenuItem autoPlayAudioAssetsToolStripMenuItem;
         private System.Windows.Forms.CheckBox sceneExactSearchCheckBox;
         private System.Windows.Forms.ToolStripMenuItem importOptionsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem customUnityVersionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem specifyUnityVersionToolStripMenuItem;
         private System.Windows.Forms.ToolStripTextBox specifyUnityVersionTextBox;
         private System.Windows.Forms.ToolStripMenuItem bundleDecompressionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem alwaysDecompressToDiskToolStripMenuItem;
